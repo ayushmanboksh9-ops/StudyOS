@@ -1,38 +1,33 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { TrendingUp, TrendingDown, Target, Calendar, BarChart3, PieChartIcon } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BookOpen, Target, X, FileText, BarChart3, TrendingUp } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/authStore";
-import { format } from "date-fns";
 
-interface DailyData {
+interface ChartDataPoint {
+  label: string;
   date: string;
-  sessions: number;
-  hours: number;
+  lectures: number;
   questions: number;
-  correct_questions: number;
   wrong_questions: number;
-}
-
-interface SubjectData {
-  subject: string;
-  hours: number;
-  questions: number;
+  dpps: number;
 }
 
 interface AnalyticsData {
-  daily: DailyData[];
-  by_subject: SubjectData[];
+  chart_data: ChartDataPoint[];
+  totals: {
+    total_lectures: number;
+    total_questions: number;
+    total_wrong: number;
+    total_dpps: number;
+  };
 }
-
-const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
 export default function AnalyticsPage() {
   const { user } = useAuthStore();
-  const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
+  const [period, setPeriod] = useState<'day' | 'week' | 'month' | 'all'>('week');
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -75,46 +70,22 @@ export default function AnalyticsPage() {
     );
   }
 
-  // Prepare chart data
-  const dailyChartData = data?.daily?.map((d) => ({
-    date: format(new Date(d.date), 'MMM dd'),
-    hours: Number(d.hours.toFixed(2)),
-    questions: d.questions,
-    accuracy: d.questions > 0 ? Number(((d.correct_questions / d.questions) * 100).toFixed(1)) : 0,
-  })) || [];
+  const chartData = data?.chart_data || [];
+  const totals = data?.totals || {
+    total_lectures: 0,
+    total_questions: 0,
+    total_wrong: 0,
+    total_dpps: 0,
+  };
 
-  const weeklyChartData = data?.daily?.slice(-7).map((d) => ({
-    day: format(new Date(d.date), 'EEE'),
-    hours: Number(d.hours.toFixed(2)),
-  })) || [];
-
-  const subjectChartData = data?.by_subject?.map((s) => ({
-    name: s.subject,
-    value: Number(s.hours.toFixed(2)),
-  })).filter((s) => s.value > 0) || [];
-
-  const accuracyData = data?.daily?.reduce(
-    (acc, d) => {
-      acc.correct += d.correct_questions;
-      acc.wrong += d.wrong_questions;
-      return acc;
-    },
-    { correct: 0, wrong: 0 }
-  ) || { correct: 0, wrong: 0 };
-
-  const accuracyChartData = accuracyData.correct + accuracyData.wrong > 0
-    ? [
-        { name: 'Correct', value: accuracyData.correct },
-        { name: 'Wrong', value: accuracyData.wrong },
-      ]
-    : [];
-
-  // Calculate trends
-  const totalHours = data?.daily?.reduce((sum, d) => sum + d.hours, 0) || 0;
-  const totalQuestions = data?.daily?.reduce((sum, d) => sum + d.questions, 0) || 0;
-  const overallAccuracy = totalQuestions > 0
-    ? ((accuracyData.correct / totalQuestions) * 100).toFixed(1)
-    : '0';
+  const getPeriodLabel = () => {
+    switch (period) {
+      case 'day': return 'Last 7 Days';
+      case 'week': return 'Last 6 Weeks';
+      case 'month': return 'Last 12 Months';
+      case 'all': return 'All Time';
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -125,81 +96,96 @@ export default function AnalyticsPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
-            Analytics Dashboard
+            Advanced Analytics
           </h1>
-          <p className="text-gray-600 mt-2">Track your progress and identify areas for improvement</p>
+          <p className="text-gray-600 mt-2">Comprehensive performance tracking with daily, weekly, monthly, and all-time views</p>
         </div>
 
         {/* Period Selector */}
         <Tabs value={period} onValueChange={(v) => setPeriod(v as any)} className="w-auto">
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="week">Week</TabsTrigger>
-            <TabsTrigger value="month">Month</TabsTrigger>
+          <TabsList className="grid grid-cols-4">
+            <TabsTrigger value="day">Daily</TabsTrigger>
+            <TabsTrigger value="week">Weekly</TabsTrigger>
+            <TabsTrigger value="month">Monthly</TabsTrigger>
             <TabsTrigger value="all">All Time</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-2 border-blue-200 shadow-premium">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-premium">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Study Time</p>
-                <p className="text-3xl font-bold text-gray-900">{totalHours.toFixed(1)}h</p>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Lectures Completed</p>
+                <p className="text-4xl font-bold text-gray-900">{totals.total_lectures}</p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
+              <div className="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                <BookOpen className="w-7 h-7 text-blue-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-green-200 shadow-premium">
+        <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-premium">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Questions Solved</p>
-                <p className="text-3xl font-bold text-gray-900">{totalQuestions}</p>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Questions Solved</p>
+                <p className="text-4xl font-bold text-gray-900">{totals.total_questions}</p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                <Target className="w-6 h-6 text-green-600" />
+              <div className="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                <Target className="w-7 h-7 text-green-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-purple-200 shadow-premium">
+        <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50 shadow-premium">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Overall Accuracy</p>
-                <p className="text-3xl font-bold text-gray-900">{overallAccuracy}%</p>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Wrong Questions</p>
+                <p className="text-4xl font-bold text-gray-900">{totals.total_wrong}</p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
+              <div className="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                <X className="w-7 h-7 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 shadow-premium">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-700 font-semibold mb-1">DPPs Completed</p>
+                <p className="text-4xl font-bold text-gray-900">{totals.total_dpps}</p>
+              </div>
+              <div className="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                <FileText className="w-7 h-7 text-orange-600" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Daily Progress Chart */}
+      {/* Lectures Progress Chart */}
       <Card className="border-2 border-gray-100 shadow-premium">
         <CardHeader>
           <CardTitle className="text-heading-3 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-violet-600" />
-            Daily Progress Trend
+            <BookOpen className="w-5 h-5 text-blue-600" />
+            📅 {getPeriodLabel()} - Lectures Completed
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {dailyChartData.length > 0 ? (
+          {chartData.length > 0 ? (
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyChartData}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="date" stroke="#6b7280" />
+                  <XAxis dataKey="label" stroke="#6b7280" style={{ fontSize: '12px' }} />
                   <YAxis stroke="#6b7280" />
                   <Tooltip
                     contentStyle={{
@@ -207,151 +193,151 @@ export default function AnalyticsPage() {
                       border: '2px solid #e5e7eb',
                       borderRadius: '12px',
                       padding: '12px',
+                      fontSize: '14px',
+                    }}
+                  />
+                  <Bar dataKey="lectures" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Lectures" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-80 flex items-center justify-center text-gray-500">
+              <p>No lecture data available for this period</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Questions Progress Chart */}
+      <Card className="border-2 border-gray-100 shadow-premium">
+        <CardHeader>
+          <CardTitle className="text-heading-3 flex items-center gap-2">
+            <Target className="w-5 h-5 text-green-600" />
+            📊 {getPeriodLabel()} - Questions Solved
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {chartData.length > 0 ? (
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="label" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                  <YAxis stroke="#6b7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      fontSize: '14px',
                     }}
                   />
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="hours"
-                    stroke="#8b5cf6"
+                    dataKey="questions"
+                    stroke="#10b981"
                     strokeWidth={3}
-                    name="Study Hours"
-                    dot={{ fill: '#8b5cf6', r: 4 }}
+                    name="Total Questions"
+                    dot={{ fill: '#10b981', r: 5 }}
                   />
                   <Line
                     type="monotone"
-                    dataKey="questions"
-                    stroke="#06b6d4"
+                    dataKey="wrong_questions"
+                    stroke="#ef4444"
                     strokeWidth={3}
-                    name="Questions Solved"
-                    dot={{ fill: '#06b6d4', r: 4 }}
+                    name="Wrong Questions"
+                    dot={{ fill: '#ef4444', r: 5 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           ) : (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              <p>No data available for this period</p>
+              <p>No question data available for this period</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Weekly Progress Bar Chart */}
-        <Card className="border-2 border-gray-100 shadow-premium">
-          <CardHeader>
-            <CardTitle className="text-heading-3 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-violet-600" />
-              Weekly Study Hours
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {weeklyChartData.length > 0 ? (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="day" stroke="#6b7280" />
-                    <YAxis stroke="#6b7280" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '2px solid #e5e7eb',
-                        borderRadius: '12px',
-                        padding: '12px',
-                      }}
-                    />
-                    <Bar dataKey="hours" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                <p>No weekly data available</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* DPPs Progress Chart */}
+      <Card className="border-2 border-gray-100 shadow-premium">
+        <CardHeader>
+          <CardTitle className="text-heading-3 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-orange-600" />
+            📘 {getPeriodLabel()} - DPPs Completed
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {chartData.length > 0 ? (
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="label" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                  <YAxis stroke="#6b7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      fontSize: '14px',
+                    }}
+                  />
+                  <Bar dataKey="dpps" fill="#f97316" radius={[8, 8, 0, 0]} name="DPPs Completed" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-80 flex items-center justify-center text-gray-500">
+              <p>No DPP data available for this period</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Accuracy Pie Chart */}
-        <Card className="border-2 border-gray-100 shadow-premium">
-          <CardHeader>
-            <CardTitle className="text-heading-3 flex items-center gap-2">
-              <PieChartIcon className="w-5 h-5 text-violet-600" />
-              Accuracy Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {accuracyChartData.length > 0 ? (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={accuracyChartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      <Cell fill="#10b981" />
-                      <Cell fill="#ef4444" />
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                <p>No accuracy data available</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Subject Distribution */}
-        <Card className="border-2 border-gray-100 shadow-premium lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-heading-3 flex items-center gap-2">
-              <PieChartIcon className="w-5 h-5 text-violet-600" />
-              Time Allocation by Subject
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {subjectChartData.length > 0 ? (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={subjectChartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={120}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {subjectChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                <p>No subject data available</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Combined Overview Chart */}
+      <Card className="border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 shadow-premium-lg">
+        <CardHeader>
+          <CardTitle className="text-heading-3 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-violet-600" />
+            🗓 {getPeriodLabel()} - Complete Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {chartData.length > 0 ? (
+            <div className="h-96">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="label" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                  <YAxis stroke="#6b7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      fontSize: '14px',
+                    }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="lectures" stroke="#3b82f6" strokeWidth={2} name="Lectures" />
+                  <Line type="monotone" dataKey="questions" stroke="#10b981" strokeWidth={2} name="Questions" />
+                  <Line type="monotone" dataKey="wrong_questions" stroke="#ef4444" strokeWidth={2} name="Wrong" />
+                  <Line type="monotone" dataKey="dpps" stroke="#f97316" strokeWidth={2} name="DPPs" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-96 flex items-center justify-center text-gray-500">
+              <p>No data available for this period</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
