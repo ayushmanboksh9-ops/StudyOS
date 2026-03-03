@@ -13,12 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Upload, BookOpen, Trash2 } from "lucide-react";
-import { JEE_SUBJECTS, NEET_SUBJECTS } from "@/constants/subjects";
+import { useCustomSubjects } from "@/hooks/useCustomSubjects";
+import SubjectSelector from "@/components/features/SubjectSelector";
 import { toast } from "sonner";
 
 export default function NotesPage() {
   const { user } = useAuthStore();
   const { notes, addNote, deleteNote } = useDataStore();
+  const { customSubjects, addCustomSubject } = useCustomSubjects();
 
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,8 +28,6 @@ export default function NotesPage() {
     chapter: "",
     files: [] as File[],
   });
-
-  const subjects = user?.exam?.includes("JEE") ? JEE_SUBJECTS : NEET_SUBJECTS;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -109,18 +109,14 @@ export default function NotesPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label>Subject</Label>
-                <Select value={formData.subject} onValueChange={(v) => setFormData({ ...formData, subject: v })}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject} value={subject}>
-                        {subject}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SubjectSelector
+                  value={formData.subject}
+                  onChange={(v) => setFormData({ ...formData, subject: v })}
+                  customSubjects={customSubjects}
+                  onAddCustomSubject={addCustomSubject}
+                  placeholder="Select subject"
+                  className="mt-1"
+                />
               </div>
 
               <div>

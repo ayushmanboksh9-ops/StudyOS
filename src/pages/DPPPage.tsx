@@ -14,12 +14,14 @@ import {
 } from "@/components/ui/select";
 import { Plus, FileText } from "lucide-react";
 import { format } from "date-fns";
-import { JEE_SUBJECTS, NEET_SUBJECTS } from "@/constants/subjects";
+import { useCustomSubjects } from "@/hooks/useCustomSubjects";
+import SubjectSelector from "@/components/features/SubjectSelector";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 export default function DPPPage() {
   const { user } = useAuthStore();
   const { dpps, addDPP } = useDataStore();
+  const { customSubjects, addCustomSubject } = useCustomSubjects();
 
   const [formData, setFormData] = useState({
     subject: "",
@@ -27,8 +29,6 @@ export default function DPPPage() {
     marks: "",
     totalMarks: "",
   });
-
-  const subjects = user?.exam?.includes("JEE") ? JEE_SUBJECTS : NEET_SUBJECTS;
 
   const handleAddDPP = () => {
     if (!formData.subject || !formData.marks || !formData.totalMarks) {
@@ -75,18 +75,14 @@ export default function DPPPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label>Subject</Label>
-              <Select value={formData.subject} onValueChange={(v) => setFormData({ ...formData, subject: v })}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subjects.map((subject) => (
-                    <SelectItem key={subject} value={subject}>
-                      {subject}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SubjectSelector
+                value={formData.subject}
+                onChange={(v) => setFormData({ ...formData, subject: v })}
+                customSubjects={customSubjects}
+                onAddCustomSubject={addCustomSubject}
+                placeholder="Select subject"
+                className="mt-1"
+              />
             </div>
 
             <div>

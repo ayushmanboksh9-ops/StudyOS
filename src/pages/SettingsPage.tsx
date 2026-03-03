@@ -16,10 +16,10 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/lib/supabase";
-import { Users, Eye, EyeOff } from "lucide-react";
+import { Users, Eye, EyeOff, LogOut, AlertTriangle } from "lucide-react";
 
 export default function SettingsPage() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -225,14 +225,46 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      <Card className="border-2 border-red-200 bg-red-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-900">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            Danger Zone
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-red-100">
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900 mb-1">Logout from your account</p>
+              <p className="text-sm text-gray-600">
+                This will end your current session and redirect you to the login page.
+              </p>
+            </div>
+            <Button
+              onClick={async () => {
+                if (confirm('Are you sure you want to logout?')) {
+                  await logout();
+                  window.location.href = '/';
+                }
+              }}
+              variant="destructive"
+              className="flex-shrink-0"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
-          <CardTitle>About StudyOS</CardTitle>
+          <CardTitle>About StudyWays</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-gray-600">
             <p><strong>Version:</strong> 1.0.0</p>
-            <p><strong>Built for:</strong> Serious JEE & NEET aspirants</p>
+            <p><strong>Built for:</strong> All students - School, College, Competitive Exams</p>
             <p className="pt-4 italic">
               "Success is the sum of small efforts repeated day in and day out."
             </p>

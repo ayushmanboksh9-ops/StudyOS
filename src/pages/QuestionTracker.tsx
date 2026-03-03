@@ -15,12 +15,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Target } from "lucide-react";
 import { format } from "date-fns";
-import { JEE_SUBJECTS, NEET_SUBJECTS } from "@/constants/subjects";
+import { useCustomSubjects } from "@/hooks/useCustomSubjects";
+import SubjectSelector from "@/components/features/SubjectSelector";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 export default function QuestionTracker() {
   const { user } = useAuthStore();
   const { practices, addPractice } = useDataStore();
+  const { customSubjects, addCustomSubject } = useCustomSubjects();
 
   const [formData, setFormData] = useState({
     subject: "",
@@ -28,8 +30,6 @@ export default function QuestionTracker() {
     totalQuestions: "",
     wrongQuestions: "",
   });
-
-  const subjects = user?.exam?.includes("JEE") ? JEE_SUBJECTS : NEET_SUBJECTS;
 
   const handleAddPractice = () => {
     if (!formData.subject || !formData.totalQuestions || !formData.wrongQuestions) {
@@ -52,8 +52,11 @@ export default function QuestionTracker() {
     });
   };
 
+  // Get all unique subjects from practices
+  const allSubjects = Array.from(new Set(practices.map(p => p.subject)));
+
   // Prepare chart data
-  const chartData = subjects.map((subject) => {
+  const chartData = allSubjects.map((subject) => {
     const subjectPractices = practices.filter((p) => p.subject === subject);
     const total = subjectPractices.reduce((sum, p) => sum + p.totalQuestions, 0);
     const wrong = subjectPractices.reduce((sum, p) => sum + p.wrongQuestions, 0);
@@ -89,18 +92,14 @@ export default function QuestionTracker() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Subject</Label>
-                  <Select value={formData.subject} onValueChange={(v) => setFormData({ ...formData, subject: v })}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjects.map((subject) => (
-                        <SelectItem key={subject} value={subject}>
-                          {subject}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SubjectSelector
+                    value={formData.subject}
+                    onChange={(v) => setFormData({ ...formData, subject: v })}
+                    customSubjects={customSubjects}
+                    onAddCustomSubject={addCustomSubject}
+                    placeholder="Select subject"
+                    className="mt-1"
+                  />
                 </div>
 
                 <div>

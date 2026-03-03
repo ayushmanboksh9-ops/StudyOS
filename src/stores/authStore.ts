@@ -140,6 +140,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       throw error;
     }
   },
+
+  // Update user (for custom subjects and other profile updates)
+  updateUser: (userData: Partial<User>) => {
+    const currentUser = get().user;
+    if (currentUser) {
+      set({ user: { ...currentUser, ...userData } });
+    }
+  },
 }));
 
 // Initialize auth state on app load
