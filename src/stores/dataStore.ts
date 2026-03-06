@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import type {
   StudySession,
   Practice,
@@ -14,10 +15,11 @@ import type {
 interface DataStore {
   // Study Sessions
   sessions: StudySession[];
-  addSession: (session: Omit<StudySession, "id">) => void;
-  updateSession: (id: string, updates: Partial<StudySession>) => void;
-  deleteSession: (id: string) => void;
+  addSession: (session: Omit<StudySession, "id">) => Promise<void>;
+  updateSession: (id: string, updates: Partial<StudySession>) => Promise<void>;
+  deleteSession: (id: string) => Promise<void>;
   getSessions: (date: string) => StudySession[];
+  loadSessions: (userId: string) => Promise<void>;
 
   // Question Practice
   practices: Practice[];
@@ -86,8 +88,43 @@ export const useDataStore = create<DataStore>((set, get) => ({
   dpps: [],
   notes: [],
 
+  loadSessions: async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', { ascending: false })
+        .order('start_time', { ascending: true });
+
+      if (error) throw error;
+
+      // Convert database format to app format
+      const sessions: StudySession[] = (data || []).map(item => ({
+        id: item.id,
+        userId: item.user_id,
+        subject: item.subject,
+        chapter: item.chapter,
+        lecture: item.lecture,
+        date: item.date,
+        startTime: item.start_time,
+        endTime: item.end_time,
+        completed: item.completed,
+        reminder: item.reminder,
+        extended: item.extended || 0,
+      }));
+
+      set({ sessions });
+    } catch (error: any) {
+      console.error('Error loading sessions:', error);
+    }
+  },
+
   loadUserData: (userId: string) => {
-    const sessions = storage.get<StudySession[]>(storage.getUserKey(userId, "sessions")) || [];
+    // Load sessions from database
+    get().loadSessions(userId);
+    
+    // Load other data from localStorage for now
     const practices = storage.get<Practice[]>(storage.getUserKey(userId, "practices")) || [];
     const wrongQuestions = storage.get<WrongQuestion[]>(storage.getUserKey(userId, "wrongQuestions")) || [];
     const exams = storage.get<Exam[]>(storage.getUserKey(userId, "exams")) || [];
@@ -96,35 +133,99 @@ export const useDataStore = create<DataStore>((set, get) => ({
     const dpps = storage.get<DPP[]>(storage.getUserKey(userId, "dpps")) || [];
     const notes = storage.get<Note[]>(storage.getUserKey(userId, "notes")) || [];
 
-    set({ sessions, practices, wrongQuestions, exams, weeklyGoals, monthlyGoals, dpps, notes });
+    set({ practices, wrongQuestions, exams, weeklyGoals, monthlyGoals, dpps, notes });
   },
 
-  addSession: (session) => {
-    const newSession = { ...session, id: Date.now().toString() };
-    const sessions = [...get().sessions, newSession];
-    set({ sessions });
-    storage.set(storage.getUserKey(session.userId, "sessions"), sessions);
-    toast.success("Study session added!");
-  },
+  addSession: async (session) => {
+    try {
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .insert({
+          user_id: session.userId,
+          subject: session.subject,
+          chapter: session.chapter,
+          lecture: session.lecture,
+          date: session.date,
+          start_time: session.startTime,
+          end_time: session.endTime,
+          completed: session.completed || false,
+          reminder: session.reminder || true,
+          extended: session.extended || 0,
+        })
+        .select()
+        .single();
 
-  updateSession: (id, updates) => {
-    const sessions = get().sessions.map((s) =>
-      s.id === id ? { ...s, ...updates } : s
-    );
-    set({ sessions });
-    const userId = sessions.find((s) => s.id === id)?.userId;
-    if (userId) {
-      storage.set(storage.getUserKey(userId, "sessions"), sessions);
+      if (error) throw error;
+
+      // Convert database format to app format
+      const newSession: StudySession = {
+        id: data.id,
+        userId: data.user_id,
+        subject: data.subject,
+        chapter: data.chapter,
+        lecture: data.lecture,
+        date: data.date,
+        startTime: data.start_time,
+        endTime: data.end_time,
+        completed: data.completed,
+        reminder: data.reminder,
+        extended: data.extended,
+      };
+
+      const sessions = [...get().sessions, newSession];
+      set({ sessions });
+      toast.success("Study session added!");
+    } catch (error: any) {
+      console.error('Error adding session:', error);
+      toast.error('Failed to add session');
     }
   },
 
-  deleteSession: (id) => {
-    const session = get().sessions.find((s) => s.id === id);
-    const sessions = get().sessions.filter((s) => s.id !== id);
-    set({ sessions });
-    if (session) {
-      storage.set(storage.getUserKey(session.userId, "sessions"), sessions);
+  updateSession: async (id, updates) => {
+    try {
+      // Convert camelCase to snake_case for database
+      const dbUpdates: any = {};
+      if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
+      if (updates.startTime) dbUpdates.start_time = updates.startTime;
+      if (updates.endTime) dbUpdates.end_time = updates.endTime;
+      if (updates.extended !== undefined) dbUpdates.extended = updates.extended;
+      if (updates.reminder !== undefined) dbUpdates.reminder = updates.reminder;
+      
+      dbUpdates.updated_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('study_sessions')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state
+      const sessions = get().sessions.map((s) =>
+        s.id === id ? { ...s, ...updates } : s
+      );
+      set({ sessions });
+    } catch (error: any) {
+      console.error('Error updating session:', error);
+      toast.error('Failed to update session');
+    }
+  },
+
+  deleteSession: async (id) => {
+    try {
+      const { error } = await supabase
+        .from('study_sessions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const sessions = get().sessions.filter((s) => s.id !== id);
+      set({ sessions });
       toast.success("Session deleted");
+    } catch (error: any) {
+      console.error('Error deleting session:', error);
+      toast.error('Failed to delete session');
     }
   },
 
