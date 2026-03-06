@@ -29,6 +29,19 @@ export default function DailyPlanner() {
   const { customSubjects, addCustomSubject } = useCustomSubjects();
   const today = format(new Date(), "yyyy-MM-dd");
   const todaySessions = getSessions(today);
+  const allSessions = sessions;
+
+  // Group all sessions by date
+  const sessionsByDate = allSessions.reduce((acc, session) => {
+    if (!acc[session.date]) {
+      acc[session.date] = [];
+    }
+    acc[session.date].push(session);
+    return acc;
+  }, {} as Record<string, StudySession[]>);
+
+  // Sort dates in descending order (newest first)
+  const sortedDates = Object.keys(sessionsByDate).sort((a, b) => b.localeCompare(a));
 
   const [subject, setSubject] = useState("");
   const [chapter, setChapter] = useState("");
@@ -296,13 +309,14 @@ export default function DailyPlanner() {
         </CardContent>
       </Card>
 
-      {/* Today's Sessions */}
+      {/* All Sessions - Grouped by Date */}
       <Card className="border-2 border-gray-100 shadow-premium">
         <CardHeader>
-          <CardTitle className="text-heading-3">Today's Schedule</CardTitle>
+          <CardTitle className="text-heading-3">Study Sessions History</CardTitle>
+          <p className="text-sm text-gray-600 mt-1">All your study sessions, organized by date</p>
         </CardHeader>
         <CardContent>
-          {todaySessions.length === 0 ? (
+          {allSessions.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
                 <Calendar className="w-8 h-8 text-gray-400" />
@@ -311,10 +325,29 @@ export default function DailyPlanner() {
               <p className="text-sm text-gray-500 mt-1">Add your first session above</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {todaySessions
-                .sort((a, b) => a.startTime.localeCompare(b.startTime))
-                .map((session) => (
+            <div className="space-y-6">
+              {sortedDates.map((date) => (
+                <div key={date} className="space-y-3">
+                  {/* Date Header */}
+                  <div className="flex items-center gap-3 pb-2 border-b-2 border-gray-200">
+                    <Calendar className="w-5 h-5 text-violet-600" />
+                    <h3 className="font-semibold text-gray-900">
+                      {format(new Date(date), "MMMM dd, yyyy")}
+                      {date === today && (
+                        <span className="ml-2 text-xs px-2 py-1 bg-violet-100 text-violet-700 rounded-full font-medium">
+                          Today
+                        </span>
+                      )}
+                    </h3>
+                    <span className="text-sm text-gray-600 ml-auto">
+                      {sessionsByDate[date].filter(s => s.completed).length} / {sessionsByDate[date].length} completed
+                    </span>
+                  </div>
+
+                  {/* Sessions for this date */}
+                  {sessionsByDate[date]
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                    .map((session) => (
                   <div
                     key={session.id}
                     className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-smooth ${
@@ -377,7 +410,9 @@ export default function DailyPlanner() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                    ))}
+                </div>
+              ))}
             </div>
           )}
         </CardContent>

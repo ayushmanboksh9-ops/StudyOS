@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, BookOpen, Target, X, FileText } from "lucide-react";
+import { Calendar, BookOpen, Target, X, FileText, Clock, CheckCircle2, Circle } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/authStore";
 import { toast } from "sonner";
+import type { StudySession } from "@/types";
 
 interface DailyStats {
   date: string;
@@ -18,10 +19,21 @@ interface DailyStats {
   study_hours: number;
 }
 
+interface SessionData {
+  id: string;
+  subject: string;
+  chapter: string;
+  lecture: string;
+  start_time: string;
+  end_time: string;
+  completed: boolean;
+}
+
 export default function DailyHistoryViewer() {
   const { user } = useAuthStore();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [stats, setStats] = useState<DailyStats | null>(null);
+  const [sessions, setSessions] = useState<SessionData[]>([]);
   const [loading, setLoading] = useState(false);
 
   const loadDailyStats = async (date: string) => {
@@ -29,14 +41,26 @@ export default function DailyHistoryViewer() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_daily_stats', {
+      // Load stats
+      const { data: statsData, error: statsError } = await supabase.rpc('get_daily_stats', {
         target_user_id: user.id,
         target_date: date,
       });
 
-      if (error) throw error;
+      if (statsError) throw statsError;
 
-      setStats(data as DailyStats);
+      // Load sessions for this date
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('study_sessions')
+        .select('id, subject, chapter, lecture, start_time, end_time, completed')
+        .eq('user_id', user.id)
+        .eq('date', date)
+        .order('start_time', { ascending: true });
+
+      if (sessionsError) throw sessionsError;
+
+      setStats(statsData as DailyStats);
+      setSessions(sessionsData || []);
     } catch (error: any) {
       console.error('Error loading daily stats:', error);
       toast.error('Failed to load statistics');
@@ -83,14 +107,16 @@ export default function DailyHistoryViewer() {
           </div>
         </div>
 
-        {/* Stats Display - ONLY 4 Metrics */}
+        {/* Stats Display */}
         {stats && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-6 animate-fade-in">
             <div className="mb-3 pb-3 border-b-2 border-violet-200">
               <p className="text-sm font-semibold text-gray-700">
                 Activity for {format(new Date(selectedDate), "MMMM dd, yyyy")}
               </p>
             </div>
+
+            {/* Summary Stats - 4 Metrics */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* 1. Total Lectures Completed */}
@@ -151,6 +177,53 @@ export default function DailyHistoryViewer() {
                 </div>
               </div>
             </div>
+
+            {/* Study Sessions Details */}
+            {sessions.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-violet-600" />
+                  Study Sessions ({sessions.length})
+                </h4>
+                <div className="space-y-2">
+                  {sessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        session.completed
+                          ? "bg-green-50 border-green-200"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {session.completed ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h5 className="font-semibold text-gray-900">{session.subject}</h5>
+                            {session.completed && (
+                              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                                Completed
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Chapter {session.chapter}, Lecture {session.lecture}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-1.5 text-xs text-gray-500">
+                            <Clock className="w-3.5 h-3.5" />
+                            {session.start_time} - {session.end_time}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
