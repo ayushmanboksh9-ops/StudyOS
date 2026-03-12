@@ -344,23 +344,38 @@ export default function WrongQuestionsPage() {
         )}
       </div>
 
-      {/* Image Preview Modal */}
+      {/* Image Preview Modal - Full Screen with Proper Display */}
       {previewImage && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-black/95 z-[100] animate-fade-in"
           onClick={closePreview}
         >
-          <div className="relative max-w-6xl max-h-screen w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
-            {/* Close Button */}
-            <Button
-              onClick={closePreview}
-              className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 text-white border-white/30"
-              size="icon"
-            >
-              <X className="w-6 h-6" />
-            </Button>
+          {/* Modal Container */}
+          <div className="relative w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Top Controls Bar */}
+            <div className="absolute top-0 left-0 right-0 z-20 p-4 md:p-6 bg-gradient-to-b from-black/80 to-transparent">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 pr-4">
+                  <p className="text-white font-semibold text-base md:text-lg drop-shadow-lg truncate">
+                    {previewImage.name}
+                  </p>
+                  {previewFiles.length > 1 && (
+                    <p className="text-white/80 text-sm mt-1">
+                      Image {previewFiles.findIndex(f => f.data === previewImage.url) + 1} of {previewFiles.length}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  onClick={closePreview}
+                  className="bg-white/20 hover:bg-white/30 text-white border-2 border-white/40 backdrop-blur-md shadow-lg h-12 w-12 flex-shrink-0"
+                  size="icon"
+                >
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+            </div>
 
-            {/* Navigation Buttons */}
+            {/* Navigation Buttons - Only if multiple images */}
             {previewFiles.length > 1 && (
               <>
                 <Button
@@ -368,41 +383,42 @@ export default function WrongQuestionsPage() {
                     e.stopPropagation();
                     navigatePreview('prev');
                   }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  className="fixed left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 text-white border-2 border-white/40 backdrop-blur-md shadow-xl h-12 w-12 md:h-14 md:w-14 rounded-full"
                   size="icon"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-6 h-6 md:w-7 md:h-7" />
                 </Button>
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     navigatePreview('next');
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  className="fixed right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 text-white border-2 border-white/40 backdrop-blur-md shadow-xl h-12 w-12 md:h-14 md:w-14 rounded-full"
                   size="icon"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-6 h-6 md:w-7 md:h-7" />
                 </Button>
               </>
             )}
 
-            {/* Image */}
-            <div className="flex-1 flex items-center justify-center">
+            {/* Image Container - Centered and Properly Sized */}
+            <div className="flex-1 flex items-center justify-center p-4 md:p-20 pt-24 pb-20">
               <img
                 src={previewImage.url}
                 alt={previewImage.name}
-                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-2xl border-4 border-white/10"
+                style={{ 
+                  maxHeight: 'calc(100vh - 160px)',
+                  maxWidth: 'calc(100vw - 32px)'
+                }}
               />
             </div>
 
-            {/* Image Info */}
-            <div className="bg-white/10 backdrop-blur-sm text-white p-4 rounded-lg mt-4 border border-white/20">
-              <p className="text-sm font-medium">{previewImage.name}</p>
-              {previewFiles.length > 1 && (
-                <p className="text-xs text-white/70 mt-1">
-                  {previewFiles.findIndex(f => f.data === previewImage.url) + 1} of {previewFiles.length} images
-                </p>
-              )}
+            {/* Bottom Hint */}
+            <div className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/80 to-transparent">
+              <p className="text-white/70 text-sm text-center">
+                Click anywhere outside the image to close • Use arrow buttons to navigate
+              </p>
             </div>
           </div>
         </div>
