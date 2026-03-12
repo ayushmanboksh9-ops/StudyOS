@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Upload, X, AlertCircle } from "lucide-react";
+import { Plus, Upload, X, AlertCircle, FileText, Image as ImageIcon, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import {
   Select,
@@ -33,6 +33,8 @@ export default function WrongQuestionsPage() {
   });
 
   const [filter, setFilter] = useState<"all" | "repeated">("all");
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string; questionId: string; fileIndex: number } | null>(null);
+  const [previewFiles, setPreviewFiles] = useState<{ name: string; type: string; data: string }[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -95,6 +97,45 @@ export default function WrongQuestionsPage() {
   const filteredQuestions = wrongQuestions.filter((q) =>
     filter === "all" ? true : q.repeated
   );
+
+  const openImagePreview = (file: { name: string; type: string; data: string }, questionId: string, fileIndex: number, allFiles: { name: string; type: string; data: string }[]) => {
+    if (file.type.startsWith('image/')) {
+      setPreviewImage({ url: file.data, name: file.name, questionId, fileIndex });
+      setPreviewFiles(allFiles.filter(f => f.type.startsWith('image/')));
+    } else {
+      // For PDFs, open in new tab
+      const blob = dataURLtoBlob(file.data);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
+
+  const dataURLtoBlob = (dataURL: string) => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
+  const closePreview = () => {
+    setPreviewImage(null);
+    setPreviewFiles([]);
+  };
+
+  const navigatePreview = (direction: 'prev' | 'next') => {
+    if (!previewImage) return;
+    const currentIndex = previewFiles.findIndex(f => f.data === previewImage.url);
+    let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    if (newIndex < 0) newIndex = previewFiles.length - 1;
+    if (newIndex >= previewFiles.length) newIndex = 0;
+    const newFile = previewFiles[newIndex];
+    setPreviewImage({ ...previewImage, url: newFile.data, name: newFile.name });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -249,10 +290,34 @@ export default function WrongQuestionsPage() {
                   <p className="text-sm font-medium text-gray-700 mb-2">
                     {question.files.length} file(s) uploaded
                   </p>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {question.files.map((file, index) => (
-                      <div key={index} className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                        📎 {file.name}
+                      <div
+                        key={index}
+                        onClick={() => openImagePreview(file, question.id, index, question.files)}
+                        className="group relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-200 hover:border-violet-400 transition-all bg-gray-50 hover:shadow-lg"
+                      >
+                        {file.type.startsWith('image/') ? (
+                          <>
+                            <img
+                              src={file.data}
+                              alt={file.name}
+                              className="w-full h-32 object-cover group-hover:scale-105 transition-transform"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                              <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                              <p className="text-xs text-white truncate">{file.name}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="h-32 flex flex-col items-center justify-center p-3 hover:bg-gray-100 transition-colors">
+                            <FileText className="w-8 h-8 text-red-500 mb-2" />
+                            <p className="text-xs text-gray-700 text-center truncate w-full">{file.name}</p>
+                            <p className="text-xs text-gray-500 mt-1">Click to open</p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -278,6 +343,70 @@ export default function WrongQuestionsPage() {
           ))
         )}
       </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-fade-in"
+          onClick={closePreview}
+        >
+          <div className="relative max-w-6xl max-h-screen w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Close Button */}
+            <Button
+              onClick={closePreview}
+              className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 text-white border-white/30"
+              size="icon"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+
+            {/* Navigation Buttons */}
+            {previewFiles.length > 1 && (
+              <>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigatePreview('prev');
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  size="icon"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigatePreview('next');
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  size="icon"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </Button>
+              </>
+            )}
+
+            {/* Image */}
+            <div className="flex-1 flex items-center justify-center">
+              <img
+                src={previewImage.url}
+                alt={previewImage.name}
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              />
+            </div>
+
+            {/* Image Info */}
+            <div className="bg-white/10 backdrop-blur-sm text-white p-4 rounded-lg mt-4 border border-white/20">
+              <p className="text-sm font-medium">{previewImage.name}</p>
+              {previewFiles.length > 1 && (
+                <p className="text-xs text-white/70 mt-1">
+                  {previewFiles.findIndex(f => f.data === previewImage.url) + 1} of {previewFiles.length} images
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
