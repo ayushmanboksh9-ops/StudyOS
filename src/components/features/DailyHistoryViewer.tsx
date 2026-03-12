@@ -116,74 +116,114 @@ export default function DailyHistoryViewer() {
               </p>
             </div>
 
-            {/* Summary Stats - 4 Metrics */}
+            {/* Summary Stats - 2 Key Metrics */}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 1. Total Lectures Completed */}
-              <div className="p-5 rounded-xl bg-white border-2 border-blue-200 shadow-sm hover:shadow-md transition-all">
+              <div className="p-6 rounded-xl bg-white border-2 border-blue-200 shadow-sm hover:shadow-md transition-all">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-blue-600" />
+                  <div className="w-14 h-14 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <BookOpen className="w-7 h-7 text-blue-600" />
                   </div>
-                  <span className="text-sm font-semibold text-gray-700">Lectures Completed</span>
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-gray-700 block">Lectures Completed</span>
+                    <span className="text-xs text-gray-500">Total study time: {stats.study_hours}h</span>
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-gray-900">{stats.lectures_completed}</div>
-                <div className="text-xs text-gray-600 mt-1.5">
-                  Total study time: {stats.study_hours}h
-                </div>
+                <div className="text-4xl font-bold text-gray-900">{stats.lectures_completed}</div>
               </div>
 
-              {/* 2. Total Questions Solved */}
-              <div className="p-5 rounded-xl bg-white border-2 border-green-200 shadow-sm hover:shadow-md transition-all">
+              {/* 2. Total Questions Practiced */}
+              <div className="p-6 rounded-xl bg-white border-2 border-green-200 shadow-sm hover:shadow-md transition-all">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Target className="w-6 h-6 text-green-600" />
+                  <div className="w-14 h-14 rounded-lg bg-green-100 flex items-center justify-center">
+                    <Target className="w-7 h-7 text-green-600" />
                   </div>
-                  <span className="text-sm font-semibold text-gray-700">Questions Solved</span>
-                </div>
-                <div className="text-3xl font-bold text-gray-900">{stats.questions_solved}</div>
-                <div className="text-xs text-gray-600 mt-1.5">
-                  Practice questions attempted
-                </div>
-              </div>
-
-              {/* 3. Total Wrong Questions */}
-              <div className="p-5 rounded-xl bg-white border-2 border-red-200 shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center">
-                    <X className="w-6 h-6 text-red-600" />
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-gray-700 block">Questions Practiced</span>
+                    <span className="text-xs text-gray-500">
+                      {stats.questions_solved > 0 
+                        ? `${((stats.questions_solved - stats.wrong_questions) / stats.questions_solved * 100).toFixed(1)}% accuracy`
+                        : "No practice data"}
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-700">Wrong Questions</span>
                 </div>
-                <div className="text-3xl font-bold text-gray-900">{stats.wrong_questions}</div>
-                <div className="text-xs text-gray-600 mt-1.5">
-                  {stats.questions_solved > 0 
-                    ? `${((stats.questions_solved - stats.wrong_questions) / stats.questions_solved * 100).toFixed(1)}% accuracy`
-                    : "No data"}
-                </div>
-              </div>
-
-              {/* 4. Total DPPs Solved */}
-              <div className="p-5 rounded-xl bg-white border-2 border-orange-200 shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <span className="text-sm font-semibold text-gray-700">DPPs Completed</span>
-                </div>
-                <div className="text-3xl font-bold text-gray-900">{stats.dpps_completed}</div>
-                <div className="text-xs text-gray-600 mt-1.5">
-                  Daily Practice Problems
-                </div>
+                <div className="text-4xl font-bold text-gray-900">{stats.questions_solved}</div>
               </div>
             </div>
 
-            {/* Study Sessions Details */}
+            {/* Lectures Completed - Detailed List */}
+            {sessions.filter(s => s.completed).length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-lg">
+                  <BookOpen className="w-5 h-5 text-blue-600" />
+                  📚 Lectures You Completed ({sessions.filter(s => s.completed).length})
+                </h4>
+                <div className="grid gap-3">
+                  {sessions.filter(s => s.completed).map((session) => (
+                    <div
+                      key={session.id}
+                      className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-sm hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h5 className="font-bold text-gray-900">{session.subject}</h5>
+                            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-semibold">
+                              ✓ Done
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 font-medium">
+                            Chapter {session.chapter}, Lecture {session.lecture}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-600">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="font-medium">{session.start_time} - {session.end_time}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Questions Practice Summary */}
+            {stats.questions_solved > 0 && (
+              <div className="p-5 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 shadow-sm">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-white shadow-sm flex items-center justify-center">
+                    <Target className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-lg">📝 Questions Practice Summary</h4>
+                    <p className="text-sm text-gray-600">Your practice performance</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mt-4">
+                  <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                    <div className="text-2xl font-bold text-blue-600">{stats.questions_solved}</div>
+                    <div className="text-xs text-gray-600 mt-1">Total Solved</div>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg border border-green-200">
+                    <div className="text-2xl font-bold text-green-600">{stats.questions_solved - stats.wrong_questions}</div>
+                    <div className="text-xs text-gray-600 mt-1">Correct</div>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg border border-red-200">
+                    <div className="text-2xl font-bold text-red-600">{stats.wrong_questions}</div>
+                    <div className="text-xs text-gray-600 mt-1">Wrong</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* All Study Sessions */}
             {sessions.length > 0 && (
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-900 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-violet-600" />
-                  Study Sessions ({sessions.length})
+                  All Study Sessions ({sessions.length})
                 </h4>
                 <div className="space-y-2">
                   {sessions.map((session) => (
@@ -204,9 +244,13 @@ export default function DailyHistoryViewer() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h5 className="font-semibold text-gray-900">{session.subject}</h5>
-                            {session.completed && (
+                            {session.completed ? (
                               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
                                 Completed
+                              </span>
+                            ) : (
+                              <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">
+                                Planned
                               </span>
                             )}
                           </div>
@@ -233,13 +277,21 @@ export default function DailyHistoryViewer() {
          stats.questions_solved === 0 && 
          stats.wrong_questions === 0 && 
          stats.dpps_completed === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl border-2 border-gray-200">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
-              <Calendar className="w-8 h-8 text-gray-400" />
+          <div className="text-center py-16 bg-white rounded-xl border-2 border-gray-200">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <Calendar className="w-10 h-10 text-gray-400" />
             </div>
-            <p className="text-gray-900 font-semibold text-lg mb-1">No Activity Recorded</p>
-            <p className="text-sm text-gray-600">
-              for {format(new Date(selectedDate), "MMMM dd, yyyy")}
+            <p className="text-gray-900 font-bold text-xl mb-2">📭 No Study Statistics</p>
+            <p className="text-gray-600 text-base mb-1">
+              You had no study activity on
+            </p>
+            <p className="text-gray-900 font-semibold text-lg">
+              {format(new Date(selectedDate), "MMMM dd, yyyy")}
+            </p>
+            <p className="text-sm text-gray-500 mt-4 max-w-md mx-auto">
+              {selectedDate === format(new Date(), "yyyy-MM-dd") 
+                ? "Start your study session today to track your progress!"
+                : "No lectures completed, questions practiced, or DPPs solved on this day."}
             </p>
           </div>
         )}
