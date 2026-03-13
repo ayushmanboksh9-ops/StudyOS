@@ -135,6 +135,32 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* Mobile Touch Effects */
+  .active\:scale-95:active {
+    transform: scale(0.95);
+  }
+
+  .active\:scale-98:active {
+    transform: scale(0.98);
+  }
+
+  /* Mobile-Optimized Scrolling */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Disable pull-to-refresh on mobile browsers */
+  body {
+    overscroll-behavior-y: contain;
+  }
+
   /* Typography Scale (1.125 ratio - Major Second) */
   .text-display {
     font-size: 3.5rem;
@@ -162,15 +188,36 @@
     font-weight: 600;
   }
 
+  /* Mobile Typography Optimization */
   @media (max-width: 640px) {
     .text-display {
-      font-size: 2.5rem;
+      font-size: 2rem;
+      line-height: 1.15;
     }
     .text-heading-1 {
-      font-size: 2rem;
+      font-size: 1.75rem;
+      line-height: 1.25;
     }
     .text-heading-2 {
       font-size: 1.5rem;
+      line-height: 1.3;
+    }
+    .text-heading-3 {
+      font-size: 1.25rem;
+      line-height: 1.4;
+    }
+  }
+
+  /* Tablet Typography */
+  @media (min-width: 641px) and (max-width: 1023px) {
+    .text-display {
+      font-size: 3rem;
+    }
+    .text-heading-1 {
+      font-size: 2.25rem;
+    }
+    .text-heading-2 {
+      font-size: 1.875rem;
     }
   }
 }

@@ -22,7 +22,9 @@ export default function DashboardLayout() {
       <Header />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 ml-64 mt-16 p-8">
+        {/* Mobile: full width with bottom padding for floating action button */}
+        {/* Desktop: offset by sidebar */}
+        <main className="flex-1 w-full lg:ml-64 mt-16 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
           <Outlet />
         </main>
       </div>

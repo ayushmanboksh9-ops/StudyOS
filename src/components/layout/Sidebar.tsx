@@ -43,20 +43,20 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Floating */}
       <Button
         variant="ghost"
         size="icon"
-        className="fixed left-4 top-4 z-50 lg:hidden"
+        className="fixed left-3 top-3 z-50 lg:hidden w-9 h-9 rounded-xl bg-white shadow-premium border border-gray-200 hover:bg-gray-50"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
-        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {mobileOpen ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
       </Button>
 
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm animate-fade-in"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -64,11 +64,11 @@ export default function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-16 bottom-0 w-64 bg-white/95 backdrop-blur-md border-r border-gray-200 overflow-y-auto z-40 transition-transform duration-300",
+          "fixed left-0 top-14 sm:top-16 bottom-0 w-72 sm:w-80 lg:w-64 bg-white/98 backdrop-blur-xl border-r border-gray-200 overflow-y-auto z-40 transition-all duration-300 shadow-2xl lg:shadow-none",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <nav className="p-4 space-y-1">
+        <nav className="p-3 sm:p-4 space-y-1.5 pb-6">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -76,18 +76,18 @@ export default function Sidebar() {
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 relative",
+                  "flex items-center gap-3 px-4 py-3.5 sm:py-3 rounded-xl transition-all duration-200 relative text-base sm:text-sm active:scale-95",
                   isActive
                     ? item.highlight
-                      ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white font-medium shadow-premium"
-                      : "bg-violet-100 text-violet-700 font-medium shadow-sm"
+                      ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white font-semibold shadow-premium-lg"
+                      : "bg-violet-100 text-violet-700 font-semibold shadow-sm"
                     : item.highlight
-                    ? "text-violet-700 hover:bg-gradient-to-r hover:from-violet-100 hover:to-purple-100 border-2 border-violet-200"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "text-violet-700 hover:bg-gradient-to-r hover:from-violet-100 hover:to-purple-100 border-2 border-violet-200 font-medium"
+                    : "text-gray-700 hover:bg-gray-100 font-medium"
                 )
               }
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="w-5 h-5 sm:w-5 sm:h-5" />
               <span>{item.label}</span>
               {item.highlight && (
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full shadow-sm" />

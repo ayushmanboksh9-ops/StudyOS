@@ -47,93 +47,93 @@ export default function Dashboard() {
     : null;
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-br from-violet-50 via-purple-50 to-white p-8 rounded-2xl border border-violet-100 shadow-premium">
-        <h1 className="text-heading-2 text-gray-900 mb-3">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8 animate-fade-in max-w-7xl mx-auto">
+      {/* Welcome Header - Mobile Optimized */}
+      <div className="bg-gradient-to-br from-violet-50 via-purple-50 to-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl border border-violet-100 shadow-premium">
+        <h1 className="text-xl sm:text-2xl lg:text-heading-2 text-gray-900 mb-2 sm:mb-3 leading-tight">
           Welcome back, <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{user?.name?.split(" ")[0]}</span>! 👋
         </h1>
-        <p className="text-lg text-gray-600 italic font-medium">&ldquo;{randomQuote}&rdquo;</p>
+        <p className="text-sm sm:text-base lg:text-lg text-gray-600 italic font-medium leading-relaxed">&ldquo;{randomQuote}&rdquo;</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-2 border-gray-100 hover:border-violet-200 hover:shadow-premium-lg transition-smooth group">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Today's Sessions</CardTitle>
-            <div className="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Calendar className="w-5 h-5 text-violet-600" />
+      {/* Stats Grid - Mobile: 2 columns, Tablet: 2 columns, Desktop: 4 columns */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <Card className="border-2 border-gray-100 hover:border-violet-200 hover:shadow-premium-lg transition-smooth group active:scale-95">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">Sessions</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-violet-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-gray-900 mb-1">{todaySessions.length}</div>
-            <p className="text-sm text-gray-500 font-medium">
-              {todaySessions.filter((s) => s.completed).length} completed
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-0.5 sm:mb-1">{todaySessions.length}</div>
+            <p className="text-xs sm:text-sm text-gray-500 font-medium">
+              {todaySessions.filter((s) => s.completed).length} done
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-gray-100 hover:border-blue-200 hover:shadow-premium-lg transition-smooth group">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Questions Solved</CardTitle>
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Target className="w-5 h-5 text-blue-600" />
+        <Card className="border-2 border-gray-100 hover:border-blue-200 hover:shadow-premium-lg transition-smooth group active:scale-95">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">Questions</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-gray-900 mb-1">{totalQuestions}</div>
-            <p className="text-sm text-gray-500 font-medium">{accuracy}% accuracy</p>
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-0.5 sm:mb-1">{totalQuestions}</div>
+            <p className="text-xs sm:text-sm text-gray-500 font-medium">{accuracy}% accuracy</p>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-gray-100 hover:border-green-200 hover:shadow-premium-lg transition-smooth group">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Accuracy Rate</CardTitle>
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-5 h-5 text-green-600" />
+        <Card className="border-2 border-gray-100 hover:border-green-200 hover:shadow-premium-lg transition-smooth group active:scale-95">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">Accuracy</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-gray-900 mb-1">{accuracy}%</div>
-            <p className="text-sm text-gray-500 font-medium">{totalWrong} wrong answers</p>
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-0.5 sm:mb-1">{accuracy}%</div>
+            <p className="text-xs sm:text-sm text-gray-500 font-medium">{totalWrong} wrong</p>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 hover:shadow-premium-lg transition-smooth group">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Next Exam</CardTitle>
-            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-              <Clock className="w-5 h-5 text-violet-600" />
+        <Card className="border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 hover:shadow-premium-lg transition-smooth group active:scale-95">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">Next Exam</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600" />
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6 pt-0">
             {nextExam ? (
               <>
-                <div className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-1">{daysUntilExam}d</div>
-                <p className="text-sm text-gray-700 font-semibold">{nextExam.name}</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-0.5 sm:mb-1">{daysUntilExam}d</div>
+                <p className="text-xs sm:text-sm text-gray-700 font-semibold truncate">{nextExam.name}</p>
               </>
             ) : (
-              <div className="text-sm text-gray-500 font-medium">No upcoming exams</div>
+              <div className="text-xs sm:text-sm text-gray-500 font-medium">No exams</div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Today's Schedule & Upcoming Exams */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Today's Schedule & Upcoming Exams - Stack on mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <Card className="border-2 border-gray-100 shadow-premium">
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center justify-between">
-              <span className="text-heading-3">Today's Schedule</span>
+              <span className="text-lg sm:text-xl lg:text-heading-3 font-semibold">Today's Schedule</span>
               <Link to="/daily-planner">
-                <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 font-medium">
+                <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 font-medium text-xs sm:text-sm">
                   View All
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {todaySessions.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
@@ -151,16 +151,16 @@ export default function Dashboard() {
                 {todaySessions.slice(0, 5).map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-smooth border border-gray-100"
+                    className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-smooth border border-gray-100 active:scale-98"
                   >
                     <div className={`w-3 h-3 rounded-full ${session.completed ? "bg-green-500" : "bg-violet-500"} shadow-sm`} />
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-gray-900 truncate">{session.subject}</div>
-                      <div className="text-sm text-gray-500 font-medium">
+                      <div className="font-semibold text-sm sm:text-base text-gray-900 truncate">{session.subject}</div>
+                      <div className="text-xs sm:text-sm text-gray-500 font-medium">
                         Ch {session.chapter}, Lec {session.lecture}
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600 font-medium whitespace-nowrap">
+                    <div className="text-xs sm:text-sm text-gray-600 font-medium whitespace-nowrap hidden sm:block">
                       {session.startTime} - {session.endTime}
                     </div>
                   </div>
@@ -171,18 +171,18 @@ export default function Dashboard() {
         </Card>
 
         <Card className="border-2 border-gray-100 shadow-premium">
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center justify-between">
-              <span className="text-heading-3">Upcoming Exams</span>
+              <span className="text-lg sm:text-xl lg:text-heading-3 font-semibold">Upcoming Exams</span>
               <Link to="/exams">
-                <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 font-medium">
+                <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 font-medium text-xs sm:text-sm">
                   View All
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {upcomingExams.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
@@ -204,15 +204,15 @@ export default function Dashboard() {
                   return (
                     <div
                       key={exam.id}
-                      className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-100 hover:border-violet-200 transition-smooth"
+                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-100 hover:border-violet-200 transition-smooth active:scale-98"
                     >
-                      <div className="w-16 h-16 rounded-xl bg-white flex flex-col items-center justify-center shadow-sm">
-                        <div className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{days}</div>
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-white flex flex-col items-center justify-center shadow-sm">
+                        <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{days}</div>
                         <div className="text-xs text-gray-600 font-semibold">days</div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-900 truncate">{exam.name}</div>
-                        <div className="text-sm text-gray-600 font-medium">
+                        <div className="font-semibold text-sm sm:text-base text-gray-900 truncate">{exam.name}</div>
+                        <div className="text-xs sm:text-sm text-gray-600 font-medium">
                           {format(new Date(exam.date), "MMM dd, yyyy")} {exam.time && `at ${exam.time}`}
                         </div>
                       </div>
@@ -231,22 +231,22 @@ export default function Dashboard() {
       {/* Recent Achievements */}
       {recentBadges.length > 0 && (
         <Card className="border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 shadow-premium-lg">
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center justify-between">
-              <span className="text-heading-3 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-violet-600" />
-                Recent Achievements
+              <span className="text-lg sm:text-xl lg:text-heading-3 font-semibold flex items-center gap-2">
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-violet-600" />
+                Achievements
               </span>
               <Link to="/achievements">
-                <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50/50 font-medium">
+                <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50/50 font-medium text-xs sm:text-sm">
                   View All
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-3 gap-3 sm:gap-6">
               {recentBadges.map((badge) => (
                 <BadgeCard key={badge.id} badge={badge} unlocked={true} size="md" showProgress={false} />
               ))}
@@ -257,21 +257,21 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <Card className="border-2 border-gray-100 shadow-premium">
-        <CardHeader>
-          <CardTitle className="text-heading-3">Quick Actions</CardTitle>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl lg:text-heading-3 font-semibold">Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {quickActions.map((action, index) => (
               <Link key={index} to={action.to}>
                 <Button 
                   variant="outline" 
-                  className="w-full h-24 flex-col gap-3 border-2 border-gray-200 hover:border-violet-300 hover:bg-violet-50 transition-smooth group"
+                  className="w-full h-20 sm:h-24 flex-col gap-2 sm:gap-3 border-2 border-gray-200 hover:border-violet-300 hover:bg-violet-50 transition-smooth group active:scale-95"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                    <action.icon className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                    <action.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">{action.label}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-900 text-center">{action.label}</span>
                 </Button>
               </Link>
             ))}
